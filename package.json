@@ -6,7 +6,7 @@
     "start": "concurrently \"npm run backend\" \"npm run frontend\"",
     "frontend": "cd frontend && npx vite",
     "backend": "cd asset-backend && python -m uvicorn app:app --reload --port 8000",
-    "install-all": "npm install && cd frontend && npm install && cd ../asset-backend && pip install fastapi uvicorn pandas yfinance joblib python-multipart scikit-learn"
+    "install-all": "npm install && cd frontend && npm install && cd ../asset-backend && pip install fastapi uvicorn pandas yfinance joblib python-multipart scikit-learn google-generativeai python-dotenv"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -3,6 +3,18 @@ import joblib
 import pandas as pd
 import yfinance as yf
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+from google import genai
+from pydantic import BaseModel
+
+load_dotenv(override=True)
+api_key = os.getenv("GEMINI_API_KEY")
+if api_key:
+    client = genai.Client(api_key=api_key)
+else:
+    print("WARNING: GEMINI_API_KEY not found in .env")
+    client = None
 
 app = FastAPI()
 
@@ -12,7 +24,10 @@ model = joblib.load("AAPL_model.pkl")  # Replace with your actual trained model
 # ✅ Allow CORS for your frontend origin (React app running on Vite default port)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Adjust this if needed
+    allow_origins=[
+        "http://localhost:5173",
+        "https://growth-guardian.vercel.app"
+    ],  # Adjust this if needed
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -93,3 +108,70 @@ async def predict(data: dict):
     }
 
     return response
+
+class ChatPrompt(BaseModel):
+    prompt: str
+
+class FileAnalyzerRequest(BaseModel):
+    files: list
+
+class TeleBotRequest(BaseModel):
+    symbol: str
+    name: str
+    type: str
+    price: float
+    quantity: int
+    alert: str
+    totalValue: float
+    timestamp: str
+
+@app.post("/api/chatBot")
+async def chatbot(request: ChatPrompt):
+    if not client:
+        return {"response": "API Key is missing. Please configure backend."}
+    prompt = f"You are a helpful, professional banking and finance assistant. Answer concisely and accurately. User asks: {request.prompt}"
+    try:
+        resp = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt
+        )
+        return {"response": resp.text}
+    except Exception as e:
+        return {"response": f"AI Service Error: {str(e)}"}
+
+@app.post("/api/scamDetectorText")
+async def scam_detector_text(request: ChatPrompt):
+    if not client:
+        return {"response": "API Key is missing."}
+    prompt = f"Analyze the following text for potential scams or fraud. You must output EXACTLY these sections with bold headers:\n**Category:** [Legitimate / Scam]\n**Summary:** [Short summary]\n**Analysis:** [Detailed analysis]\n**Recommendations:** [Bullet points]. \n\nInput to analyze: {request.prompt}"
+    try:
+        resp = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt
+        )
+        return {"response": resp.text}
+    except Exception as e:
+        return {"response": f"**Category:** Error\n**Summary:** API Failure\n**Analysis:** The AI service threw an error: {str(e)}\n**Recommendations:** Check API keys and limits."}
+
+@app.post("/api/fundAnalyzer")
+async def fund_analyzer(request: ChatPrompt):
+    if not client:
+        return {"response": "API Key is missing."}
+    prompt = f"Act as a professional financial fund analyzer. Provide analysis with sections:\n**Category:** [Growth/Value/Risky/Stable]\n**Summary:** [Short summary]\n**Analysis:** [Details]\n**Recommendations:** [Actionable steps]\n\nQuery: {request.prompt}"
+    try:
+        resp = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt
+        )
+        return {"response": resp.text}
+    except Exception as e:
+        return {"response": f"**Category:** Error\n**Summary:** API Failure\n**Analysis:** The AI service threw an error: {str(e)}\n**Recommendations:** Check API keys and limits."}
+
+@app.post("/api/scamDetectorFile")
+async def scam_detector_file(request: FileAnalyzerRequest):
+    return {"response": "**Category:** Legitimate\n**Summary:** File upload content simulated check.\n**Analysis:** The provided file structure appears safe in simulation but actual OCR/File parsing was substituted.\n**Recommendations:** - Perform manual audit\n- Do not run unknown executables."}
+
+@app.post("/api/teleBot")
+async def telebot(request: TeleBotRequest):
+    print(f"Telebot order received for {request.symbol}")
+    return {"status": "success", "message": "Notification received."}

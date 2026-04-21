@@ -95,7 +95,7 @@ const FloatingChatbot = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        "https://hackit-fin-tech-backend.vercel.app/api/chatBot",
+        "http://localhost:8000/api/chatBot",
         {
           method: "POST",
           headers: {

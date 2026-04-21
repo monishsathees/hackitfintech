@@ -82,7 +82,7 @@ const ChatBot = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const response = await fetch(
-        "https://hackit-fin-tech-backend.vercel.app/api/scamDetectorText",
+        "http://localhost:8000/api/scamDetectorText",
         {
           method: "POST",
           headers: {

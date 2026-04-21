@@ -42,7 +42,7 @@ export default function ScamPrevention() {
         );
 
         response = await axios.post(
-          "https://hackit-fin-tech-backend.vercel.app/api/fundAnalyzer",
+          "http://localhost:8000/api/fundAnalyzer",
           payload_text,
           { headers: { "Content-Type": "application/json" } }
         );
@@ -63,7 +63,7 @@ export default function ScamPrevention() {
         console.log("File Request Payload:", payload_pdf);
 
         response = await axios.post(
-          "https://your-api-endpoint.com/api/scamDetectorFile",
+          "http://localhost:8000/api/scamDetectorFile",
           payload_pdf,
           { headers: { "Content-Type": "application/json" } }
         );

@@ -130,7 +130,7 @@ const StockTradingInterface = ({ handleChartsStock }) => {
     setOrderConfirmed(true);
     
     // Send order data to teleBot API
-    fetch('https://hackit-fin-tech-backend.vercel.app/api/teleBot', {
+    fetch('http://localhost:8000/api/teleBot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
